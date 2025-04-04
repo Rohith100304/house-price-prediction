@@ -4,7 +4,6 @@ import numpy as np
 from pycaret.regression import load_model, predict_model
 import base64
 
-# Load the saved model and dataset
 @st.cache_resource
 def load_housing_model():
     return load_model('house')
@@ -16,7 +15,6 @@ def load_dataset():
 model = load_housing_model()
 data = load_dataset()
 
-# File download functions
 def download_dataset():
     csv = data.to_csv(index=False)
     b64 = base64.b64encode(csv.encode()).decode()
@@ -30,14 +28,12 @@ def download_model():
     href = f'data:file/pkl;base64,{b64}'
     return href
 
-# Create a function to get user input in main area
 def get_user_input():
     st.header("House Information Form")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        # Numeric inputs
         longitude = st.number_input('Longitude', min_value=-124.5, max_value=-114.0, value=-122.0, step=0.1, format="%.1f")
         latitude = st.number_input('Latitude', min_value=32.5, max_value=42.0, value=37.5, step=0.1, format="%.1f")
         housing_median_age = st.number_input('Median Age of Houses in Block', min_value=1, max_value=52, value=30)
@@ -51,7 +47,6 @@ def get_user_input():
         ocean_proximity = st.selectbox('Ocean Proximity', 
                                       ['NEAR BAY', '<1H OCEAN', 'INLAND', 'NEAR OCEAN', 'ISLAND'])
     
-    # Store a dictionary into a dataframe
     user_data = {
         'longitude': longitude,
         'latitude': latitude,
@@ -68,22 +63,18 @@ def get_user_input():
     return features
 
 def main():
-    # Title
     st.title('California Housing Price Prediction App')
     st.write("""
     This app predicts the median house value for California districts based on housing information.
     Please fill out the form below and click the 'Predict' button.
     """)
     
-    # Sidebar options
     st.sidebar.title("Options")
     
-    # View Dataset button
     if st.sidebar.button("View Dataset"):
         st.subheader("California Housing Dataset")
         st.write(data)
     
-    # Download Dataset button
     dataset_download = download_dataset()
     st.sidebar.download_button(
         label="Download Dataset",
@@ -92,7 +83,6 @@ def main():
         mime='text/csv'
     )
     
-    # Download Model button
     with open('house.pkl', 'rb') as f:
         model_bytes = f.read()
     st.sidebar.download_button(
@@ -102,27 +92,20 @@ def main():
         mime='application/octet-stream'
     )
     
-    # Get user input in main area
     user_input = get_user_input()
     
-    # Display user input
     st.subheader('House Input Summary')
     st.write(user_input)
     
-    # Prediction button
     if st.button('Predict Median House Value'):
-        # Make prediction
         prediction = predict_model(model, data=user_input)
         
-        # Display prediction
         st.subheader('Prediction Result')
         predicted_value = prediction['prediction_label'][0]
         
         st.success(f'**Predicted Median House Value:** ${predicted_value:,.2f}')
         
-        # Show prediction details expander
-        with st.expander("Show detailed prediction metrics"):
-            st.write(prediction)
+       
 
 if __name__ == '__main__':
     main()
